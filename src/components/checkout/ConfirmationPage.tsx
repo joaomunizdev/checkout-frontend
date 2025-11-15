@@ -12,6 +12,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
 
+const formatLast4 = (cardNumber: string | number | undefined) => {
+  if (!cardNumber) return "****";
+  return String(cardNumber).slice(-4);
+};
+
 export default function ConfirmationPage() {
   const { transaction, setSelectedPlan, setTransaction, setCurrentPage } =
     useCheckout();
@@ -21,7 +26,6 @@ export default function ConfirmationPage() {
     setTransaction(null);
     setCurrentPage("plans");
   };
-  console.log(transaction)
   if (!transaction) {
     return (
       <div className="relative container mx-auto px-4 py-12 text-center pt-32">
@@ -33,7 +37,13 @@ export default function ConfirmationPage() {
     );
   }
 
-  if (transaction.success) {
+  const isPaymentSuccessful =
+    transaction.success && transaction.data && transaction.data.active === true;
+
+  if (isPaymentSuccessful) {
+    const { email, plan, price_paid, transaction: txData } = transaction.data;
+    const last4 = formatLast4(txData?.card?.card_number);
+
     return (
       <div className="relative container mx-auto px-4 py-12 pt-32">
         <div className="max-w-2xl mx-auto">
@@ -47,6 +57,37 @@ export default function ConfirmationPage() {
                 Sua assinatura foi criada com sucesso
               </CardDescription>
             </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className="p-4 border rounded-md text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">E-mail</span>
+                  <span className="font-medium">{email}</span>
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span className="text-muted-foreground">Plano</span>
+                  <span className="font-medium">
+                    {plan?.description || "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span className="text-muted-foreground">Cartão</span>
+                  <span className="font-medium">Final **** {last4}</span>
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span className="text-muted-foreground">Valor do Plano</span>
+                  <span className="font-medium">
+                    R$ {price_paid.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span className="text-muted-foreground">Valor Pago</span>
+                  <span className="font-medium">
+                    R$ {price_paid.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
 
             <CardFooter>
               <Button onClick={resetToPlans} className="w-full">
@@ -77,8 +118,9 @@ export default function ConfirmationPage() {
             <Alert variant="destructive">
               <XCircle className="w-4 h-4" />
               <AlertDescription>
-                {transaction.error ||
-                  "Ocorreu um erro ao processar o pagamento"}
+                {!transaction.success && transaction.error
+                  ? transaction.error
+                  : "Ocorreu um erro ao processar o pagamento"}
               </AlertDescription>
             </Alert>
           </CardContent>
