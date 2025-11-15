@@ -11,9 +11,10 @@ Este guia descreve como executar este projeto utilizando um ambiente de desenvol
 
 ## Tecnologias Utilizadas
 
-- **Next.js (App Router)**
+- **Node.js (v22)**
+- **Next.js (16.0.3) (App Router)**
 - **Typescript**
-- **React**
+- **React (v19.2.0)**
 - **ShadCN/UI** (Radix UI + Tailwind CSS)
 - **React Context API** para estado global
 - **React Hook Form** + **Zod** para formulários e validação
