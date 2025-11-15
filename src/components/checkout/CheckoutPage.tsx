@@ -331,7 +331,7 @@ export default function CheckoutPage() {
                 <p className="text-sm text-muted-foreground">
                   Plano Selecionado
                 </p>
-                <p className="font-semibold">{selectedPlan.name}</p>
+                <p className="font-semibold">{selectedPlan.description}</p>
                 <p className="text-sm text-muted-foreground">
                   {selectedPlan.periodicity} dias
                 </p>
