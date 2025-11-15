@@ -9,6 +9,19 @@ Este guia descreve como executar este projeto utilizando um ambiente de desenvol
 
 ---
 
+## Tecnologias Utilizadas
+
+- **Next.js (App Router)**
+- **Typescript**
+- **React**
+- **ShadCN/UI** (Radix UI + Tailwind CSS)
+- **React Context API** para estado global
+- **React Hook Form** + **Zod** para formulários e validação
+- **Axios** para requisições HTTP
+- **Lucide React** e **ZodResolver** para utilidades
+
+---
+
 ## Guia de Instalação e Execução
 
 Siga estes passos para configurar e levantar o ambiente de desenvolvimento.
