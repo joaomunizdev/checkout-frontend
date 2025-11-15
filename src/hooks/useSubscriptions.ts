@@ -1,5 +1,8 @@
 import api from "@/services/api";
 import { useState } from "react";
+import { CardFlag } from "./useCardFlags";
+import { Plan } from "./usePlans";
+import { isAxiosError } from "node_modules/axios/index";
 
 type SubscriptionPayload = {
   plan_id: number;
@@ -12,14 +15,42 @@ type SubscriptionPayload = {
   card_flag_id: number;
 };
 
+interface Transaction {
+  id: number;
+  card_id: number;
+  subscription_id: number;
+  status: boolean;
+  created_at: string;
+  updated_at: string;
+  card: CardFlag;
+}
+
+export interface SubscriptionResponse {
+  id: number;
+  plan_id: number;
+  coupon_id: number | null;
+  email: string;
+  active: boolean;
+  price_paid: number;
+  created_at: string;
+  updated_at: string;
+  transaction: Transaction;
+  plan: Plan;
+  coupon: unknown | null;
+}
 interface ValidationErrors {
   [field: string]: string[];
+}
+
+interface ApiErrorResponse {
+  message: string;
+  errors?: ValidationErrors;
 }
 
 export type TransactionResult =
   | {
       success: true;
-      data: any;
+      data: SubscriptionResponse;
     }
   | {
       success: false;
@@ -68,7 +99,6 @@ export function useSubscription() {
         card_flag_id: payload.card_flag_id,
       };
 
-
       await api.post("payments", paymentPayload, {
         headers: { "Idempotency-Key": idempotencyKey },
       });
@@ -80,20 +110,27 @@ export function useSubscription() {
       setIsSubmitting(false);
 
       return { success: true, data: fullSubscriptionResponse.data };
-    } catch (e: any) {
+    } catch (e: unknown) {
       setIsSubmitting(false);
 
-      if (e?.response?.status === 422 && e?.response?.data?.errors) {
-        return {
-          success: false,
-          error: e.response.data.message,
-          errors: e.response.data.errors,
-        };
+      if (isAxiosError<ApiErrorResponse>(e) && e.response) {
+        if (e.response.status === 422 && e.response.data.errors) {
+          return {
+            success: false,
+            error: e.response.data.message,
+            errors: e.response.data.errors,
+          };
+        }
+
+        const message =
+          e.response.data.message || "Erro ao processar assinatura";
+        setError(message);
+        return { success: false, error: message };
       }
 
-      let message = "Erro ao processar assinatura";
-      if (e?.response?.data?.message) {
-        message = e.response.data.message;
+      let message = "Erro inesperado";
+      if (e instanceof Error) {
+        message = e.message;
       }
 
       setError(message);

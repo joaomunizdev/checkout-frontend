@@ -43,7 +43,6 @@ export default function ConfirmationPage() {
   if (isPaymentSuccessful) {
     const { email, plan, price_paid, transaction: txData } = transaction.data;
     const last4 = formatLast4(txData?.card?.card_number);
-
     return (
       <div className="relative container mx-auto px-4 py-12 pt-32">
         <div className="max-w-2xl mx-auto">
@@ -77,7 +76,7 @@ export default function ConfirmationPage() {
                 <div className="flex justify-between mt-2">
                   <span className="text-muted-foreground">Valor do Plano</span>
                   <span className="font-medium">
-                    R$ {price_paid.toFixed(2)}
+                    R$ {plan.price.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between mt-2">
