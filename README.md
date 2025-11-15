@@ -20,6 +20,7 @@ Este guia descreve como executar este projeto utilizando um ambiente de desenvol
 - **React Hook Form** + **Zod** para formulários e validação
 - **Axios** para requisições HTTP
 - **Lucide React** e **ZodResolver** para utilidades
+- **Docker(v29.0.1^) / Docker Compose(v2.40.3)** para ambiente de desenvolvimento
 
 ---
 
