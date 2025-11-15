@@ -38,11 +38,11 @@ export default function ConfirmationPage() {
   }
 
   const isPaymentSuccessful =
-    transaction.success && transaction.data && transaction.data.active === true;
+    transaction.success && transaction.data && transaction.data.status === true;
+  const { email, plan, price_paid, transaction: txData } = transaction.data;
+  const last4 = formatLast4(txData?.card?.card_number);
 
   if (isPaymentSuccessful) {
-    const { email, plan, price_paid, transaction: txData } = transaction.data;
-    const last4 = formatLast4(txData?.card?.card_number);
     return (
       <div className="relative container mx-auto px-4 py-12 pt-32">
         <div className="max-w-2xl mx-auto">
@@ -113,7 +113,28 @@ export default function ConfirmationPage() {
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="space-y-4">
+            <div className="p-4 border rounded-md text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">E-mail</span>
+                <span className="font-medium">{email}</span>
+              </div>
+              <div className="flex justify-between mt-2">
+                <span className="text-muted-foreground">Plano</span>
+                <span className="font-medium">
+                  {plan?.description || "N/A"}
+                </span>
+              </div>
+              <div className="flex justify-between mt-2">
+                <span className="text-muted-foreground">Cartão</span>
+                <span className="font-medium">Final **** {last4}</span>
+              </div>
+              <div className="flex justify-between mt-2">
+                <span className="text-muted-foreground">Valor do Plano</span>
+                <span className="font-medium">R$ {plan.price.toFixed(2)}</span>
+              </div>
+            </div>
+
             <Alert variant="destructive">
               <XCircle className="w-4 h-4" />
               <AlertDescription>
@@ -125,13 +146,6 @@ export default function ConfirmationPage() {
           </CardContent>
 
           <CardFooter className="flex gap-2">
-            <Button
-              onClick={() => setCurrentPage("checkout")}
-              variant="outline"
-              className="flex-1"
-            >
-              Tentar Novamente
-            </Button>
             <Button onClick={resetToPlans} className="flex-1">
               Voltar aos Planos
             </Button>
