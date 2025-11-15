@@ -1,5 +1,10 @@
 "use client";
-import React, { useState } from "react";
+
+import { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,15 +17,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, CheckCircle, XCircle, CreditCard, Tag } from "lucide-react";
 
+import { Loader2, CheckCircle, XCircle, CreditCard, Tag } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
 import { useCardFlags } from "@/hooks/useCardFlags";
 import { useCoupon } from "@/hooks/useCoupon";
 import { useSubscription } from "@/hooks/useSubscriptions";
 
+const schema = z.object({
+  email: z.string().email("Email inválido"),
+  client_name: z
+    .string()
+    .min(1, "Nome obrigatório")
+    .regex(/^[A-Za-zÀ-ÿ\s]+$/, "Somente letras são permitidas"),
+  card_number: z
+    .string()
+    .regex(/^\d+$/, "Somente números")
+    .min(12, "O cartão deve ter entre 12 e 19 dígitos")
+    .max(19, "O cartão deve ter entre 12 e 19 dígitos"),
+  expire_date: z
+    .string()
+    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Formato deve ser MM/AA"),
+  cvc: z.string().regex(/^\d{3,4}$/, "CVC deve ter 3 ou 4 números"),
+  card_flag_id: z.string().min(1, "Selecione uma bandeira"),
+  coupon: z.string().optional(),
+});
+
+type FormData = z.infer<typeof schema>;
+
 export default function CheckoutPage() {
   const { selectedPlan, setCurrentPage, setTransaction } = useCheckout();
+
   const cardFlags = useCardFlags();
   const {
     couponCode,
@@ -31,17 +58,38 @@ export default function CheckoutPage() {
     calculateDiscount,
   } = useCoupon(selectedPlan);
 
-  const { createSubscription, isSubmitting, error, setError } =
-    useSubscription();
+  const {
+    createSubscription,
+    isSubmitting,
+    error: globalError,
+    setError: setGlobalError,
+  } = useSubscription();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    card_number: "",
-    client_name: "",
-    expire_date: "",
-    cvc: "",
-    card_flag_id: "",
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    control,
+    setError: setFieldError,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      email: "",
+      client_name: "",
+      card_number: "",
+      expire_date: "",
+      cvc: "",
+      card_flag_id: "",
+      coupon: "",
+    },
   });
+
+  const cardFlagId = useWatch({ control, name: "card_flag_id" });
+
+  useEffect(() => {
+    setValue("coupon", couponCode || "");
+  }, [couponCode, setValue]);
 
   if (!selectedPlan) {
     return (
@@ -54,20 +102,32 @@ export default function CheckoutPage() {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async (formData: FormData) => {
     const payload = {
       ...formData,
       plan_id: selectedPlan.id,
       coupon: couponValid ? couponCode : null,
+      card_flag_id: Number(formData.card_flag_id),
     };
 
-    const data = await createSubscription(payload);
+    setGlobalError(null);
 
-    if (data) {
-      setTransaction({ success: true, data });
+    const result = await createSubscription(payload);
+
+    if (result && result.success) {
+      setTransaction({ success: true, data: result.data });
       setCurrentPage("confirmation");
+    } else if (result && !result.success) {
+      if (result.errors) {
+        Object.entries(result.errors).forEach(([field, messages]) => {
+          setFieldError(field as keyof FormData, {
+            type: "server",
+            message: (messages as string[])[0],
+          });
+        });
+      } else {
+        setGlobalError(result.error);
+      }
     }
   };
 
@@ -89,32 +149,28 @@ export default function CheckoutPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-6">Checkout</h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
+              <Input id="email" {...register("email")} />
+              {errors.email && (
+                <p className="text-destructive text-sm">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div>
               <Label htmlFor="coupon">Cupom de Desconto</Label>
               <div className="flex gap-2">
                 <Input
-                  id="coupon"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   placeholder="Digite o cupom"
                 />
                 <Button
                   type="button"
-                  onClick={validateCoupon}
+                  onClick={() => validateCoupon(couponCode)}
                   disabled={validatingCoupon || !couponCode.trim()}
                 >
                   {validatingCoupon ? (
@@ -124,11 +180,13 @@ export default function CheckoutPage() {
                   )}
                 </Button>
               </div>
+
               {couponValid === true && (
                 <p className="text-sm text-emerald-600 mt-1 flex items-center gap-1">
                   <CheckCircle className="w-4 h-4" /> Cupom válido!
                 </p>
               )}
+
               {couponValid === false && (
                 <p className="text-sm text-destructive mt-1 flex items-center gap-1">
                   <XCircle className="w-4 h-4" /> Cupom inválido
@@ -145,32 +203,37 @@ export default function CheckoutPage() {
                 <Label htmlFor="client_name">Nome no Cartão</Label>
                 <Input
                   id="client_name"
-                  required
-                  value={formData.client_name}
+                  {...register("client_name")}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      client_name: e.target.value.toUpperCase(),
-                    })
+                    setValue(
+                      "client_name",
+                      e.target.value.replace(/[^A-Za-zÀ-ÿ\s]/g, "")
+                    )
                   }
+                  style={{ textTransform: "none" }}
                 />
+                {errors.client_name && (
+                  <p className="text-destructive text-sm">
+                    {errors.client_name.message}
+                  </p>
+                )}
               </div>
 
               <div>
                 <Label htmlFor="card_number">Número do Cartão</Label>
                 <Input
                   id="card_number"
-                  required
                   maxLength={19}
-                  placeholder="0000 0000 0000 0000"
-                  value={formData.card_number}
+                  {...register("card_number")}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      card_number: e.target.value.replace(/\D/g, ""),
-                    })
+                    setValue("card_number", e.target.value.replace(/\D/g, ""))
                   }
                 />
+                {errors.card_number && (
+                  <p className="text-destructive text-sm">
+                    {errors.card_number.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -178,74 +241,81 @@ export default function CheckoutPage() {
                   <Label htmlFor="expire_date">Validade (MM/AA)</Label>
                   <Input
                     id="expire_date"
-                    required
-                    placeholder="12/28"
                     maxLength={5}
-                    value={formData.expire_date}
+                    {...register("expire_date")}
                     onChange={(e) => {
-                      let val = e.target.value.replace(/\D/g, "");
-                      if (val.length >= 2)
-                        val = val.slice(0, 2) + "/" + val.slice(2, 4);
-                      setFormData({ ...formData, expire_date: val });
+                      let v = e.target.value.replace(/\D/g, "");
+                      if (v.length >= 2)
+                        v = v.slice(0, 2) + "/" + v.slice(2, 4);
+                      setValue("expire_date", v);
                     }}
                   />
+                  {errors.expire_date && (
+                    <p className="text-destructive text-sm">
+                      {errors.expire_date.message}
+                    </p>
+                  )}
                 </div>
+
                 <div>
                   <Label htmlFor="cvc">CVC</Label>
                   <Input
                     id="cvc"
-                    required
                     maxLength={4}
-                    placeholder="123"
-                    value={formData.cvc}
+                    {...register("cvc")}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        cvc: e.target.value.replace(/\D/g, ""),
-                      })
+                      setValue("cvc", e.target.value.replace(/\D/g, ""))
                     }
                   />
+                  {errors.cvc && (
+                    <p className="text-destructive text-sm">
+                      {errors.cvc.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="card_flag">Bandeira</Label>
+                <Label>Bandeira</Label>
                 <Select
-                  required
-                  value={formData.card_flag_id}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, card_flag_id: value })
-                  }
+                  onValueChange={(v) => setValue("card_flag_id", v)}
+                  value={cardFlagId || ""}
                 >
-                  <SelectTrigger id="card_flag">
+                  <SelectTrigger>
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
                     {cardFlags.map((flag) => (
-                      <SelectItem key={flag.id} value={flag.id}>
+                      <SelectItem key={flag.id} value={String(flag.id)}>
                         {flag.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+
+                {errors.card_flag_id && (
+                  <p className="text-destructive text-sm">
+                    {errors.card_flag_id.message}
+                  </p>
+                )}
               </div>
             </div>
 
-            {error && (
+            {globalError && (
               <Alert
                 variant="destructive"
-                onClick={() => setError(null)}
+                onClick={() => setGlobalError(null)}
                 className="cursor-pointer"
               >
                 <XCircle className="w-4 h-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{globalError}</AlertDescription>
               </Alert>
             )}
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? (
+              {isSubmitting && (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : null}
+              )}
               Finalizar Pagamento (R$ {total.toFixed(2)})
             </Button>
           </form>
