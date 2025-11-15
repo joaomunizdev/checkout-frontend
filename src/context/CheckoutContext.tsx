@@ -1,13 +1,6 @@
 "use client";
+import { Plan } from "@/hooks/usePlans";
 import { createContext, useContext, useState, ReactNode } from "react";
-
-type Plan = {
-  id: number;
-  name: string;
-  price: number;
-  periodicity: number;
-  active?: boolean;
-};
 
 type Transaction = {
   success: boolean;
