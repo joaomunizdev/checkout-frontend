@@ -29,20 +29,17 @@ Este guia descreve como executar este projeto utilizando um ambiente de desenvol
 ### Gerenciamento de Estado
 
 - _Decisão:_ Usar Context API (CheckoutContext) para o fluxo de checkout.
-- _Trade-off:_ Simples e suficiente para um fluxo isolado.  
-  Para estados globais maiores ou múltiplos fluxos, libs como Zustand/Redux seriam melhores para evitar re-renderizações desnecessárias.
+- _Trade-off:_ Simples e suficiente para um fluxo isolado.
 
 ### Busca de Dados
 
 - _Decisão:_ Criar hooks customizados (usePlans, useCoupon, etc.) para encapsular a lógica de fetch.
-- _Trade-off:_ Organização e reutilização.  
-  Não possui cache automático — para dados altamente dinâmicos, React Query/SWR seriam superiores.
+- _Trade-off:_ Organização e reutilização.
 
 ### Componentes de UI
 
 - _Decisão:_ Utilizar ShadCN/UI.
-- _Trade-off:_ Total controle sobre os componentes e bundle final.  
-  Demanda configuração inicial maior em comparação a bibliotecas prontas como MUI ou Chakra.
+- _Trade-off:_ Total controle sobre os componentes e bundle final.
 
 ### Formulários e Validação
 
