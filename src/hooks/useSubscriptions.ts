@@ -14,7 +14,7 @@ interface CardOnTransaction {
   card_flag_id: number;
   created_at: string;
   updated_at: string;
-  cardFlag: CardFlag;
+  card_flag: CardFlag;
 }
 
 type SubscriptionPayload = {

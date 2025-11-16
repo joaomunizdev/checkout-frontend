@@ -31,6 +31,7 @@ import {
   useSubscriptionsList,
   SubscriptionResponse,
 } from "@/hooks/useSubscriptions";
+import { formatCurrency } from "@/lib/utils";
 
 export default function SubscriptionPage() {
   const { setCurrentPage } = useCheckout();
@@ -59,9 +60,9 @@ export default function SubscriptionPage() {
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Minhas Assinaturas</CardTitle>
+            <CardTitle>Assinaturas</CardTitle>
             <CardDescription>
-              Veja o histórico das suas assinaturas e status de pagamento.
+              Histórico das assinaturas e status de pagamento.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -132,6 +133,9 @@ export default function SubscriptionPage() {
                   <TableHead className="text-right whitespace-nowrap">
                     Valor Pago
                   </TableHead>
+                  <TableHead className="text-right whitespace-nowrap">
+                    Valor do Plano
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -156,12 +160,18 @@ export default function SubscriptionPage() {
                       <TableCell>
                         <div className="font-medium">{tx.card.client_name}</div>
                         <div className="text-sm text-muted-foreground">
-                          (Final {String(tx.card.last_4_digits)})
+                          (Final {String(tx.card.last_4_digits)}){" "}
+                          {tx.card.card_flag.name}
                         </div>
+                        <div className="font-medium"></div>
                       </TableCell>
 
                       <TableCell className="text-right whitespace-nowrap">
-                        R$ {tx.price_paid.toFixed(2)}
+                        {formatCurrency(tx.price_paid)}
+                      </TableCell>
+
+                      <TableCell className="text-right whitespace-nowrap">
+                        {formatCurrency(selectedSub?.plan.price)}
                       </TableCell>
                     </TableRow>
                   ))
