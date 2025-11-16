@@ -25,7 +25,7 @@ import { useCoupon } from "@/hooks/useCoupon";
 import { useSubscription } from "@/hooks/useSubscriptions";
 
 const schema = z.object({
-  email: z.string().email("Email inválido"),
+  email: z.email("Email inválido"),
   client_name: z
     .string()
     .min(1, "Nome obrigatório")
@@ -53,6 +53,7 @@ export default function CheckoutPage() {
     couponCode,
     setCouponCode,
     couponValid,
+    couponError,
     loading: validatingCoupon,
     validateCoupon,
     calculateDiscount,
@@ -74,6 +75,7 @@ export default function CheckoutPage() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    mode: "onChange",
     defaultValues: {
       email: "",
       client_name: "",
@@ -187,9 +189,9 @@ export default function CheckoutPage() {
                 </p>
               )}
 
-              {couponValid === false && (
+              {couponValid === false && couponError && (
                 <p className="text-sm text-destructive mt-1 flex items-center gap-1">
-                  <XCircle className="w-4 h-4" /> Cupom inválido
+                  <XCircle className="w-4 h-4" /> {couponError}
                 </p>
               )}
             </div>
@@ -207,7 +209,8 @@ export default function CheckoutPage() {
                   onChange={(e) =>
                     setValue(
                       "client_name",
-                      e.target.value.replace(/[^A-Za-zÀ-ÿ\s]/g, "")
+                      e.target.value.replace(/[^A-Za-zÀ-ÿ\s]/g, ""),
+                      { shouldValidate: true }
                     )
                   }
                   style={{ textTransform: "none" }}
@@ -226,7 +229,9 @@ export default function CheckoutPage() {
                   maxLength={19}
                   {...register("card_number")}
                   onChange={(e) =>
-                    setValue("card_number", e.target.value.replace(/\D/g, ""))
+                    setValue("card_number", e.target.value.replace(/\D/g, ""), {
+                      shouldValidate: true,
+                    })
                   }
                 />
                 {errors.card_number && (
@@ -247,7 +252,7 @@ export default function CheckoutPage() {
                       let v = e.target.value.replace(/\D/g, "");
                       if (v.length >= 2)
                         v = v.slice(0, 2) + "/" + v.slice(2, 4);
-                      setValue("expire_date", v);
+                      setValue("expire_date", v, { shouldValidate: true });
                     }}
                   />
                   {errors.expire_date && (
@@ -264,7 +269,9 @@ export default function CheckoutPage() {
                     maxLength={4}
                     {...register("cvc")}
                     onChange={(e) =>
-                      setValue("cvc", e.target.value.replace(/\D/g, ""))
+                      setValue("cvc", e.target.value.replace(/\D/g, ""), {
+                        shouldValidate: true,
+                      })
                     }
                   />
                   {errors.cvc && (
@@ -278,10 +285,12 @@ export default function CheckoutPage() {
               <div>
                 <Label>Bandeira</Label>
                 <Select
-                  onValueChange={(v) => setValue("card_flag_id", v)}
+                  onValueChange={(v) =>
+                    setValue("card_flag_id", v, { shouldValidate: true })
+                  }
                   value={cardFlagId || ""}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-invalid={!!errors.card_flag_id}>
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>

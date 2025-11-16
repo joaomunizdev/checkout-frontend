@@ -1,15 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plan } from "./usePlans";
 import api from "@/services/api";
+import { AxiosError } from "axios";
 export type Coupon = {
   id: number;
   name: string;
   discount_percent?: number;
   discount_amount?: number;
 };
+
+const translateCouponError = (message: string): string => {
+  switch (message) {
+    case "Invalid Coupon":
+      return "Cupom inválido";
+    case "Expired coupon!":
+      return "Cupom expirado!";
+    case "Coupon usage limit exceeded!":
+      return "Limite de uso do cupom excedido!";
+    default:
+      return "Cupom inválido ou não aplicável a este plano.";
+  }
+};
+
 export const useCoupon = (selectedPlan: Plan | null) => {
   const [couponCode, setCouponCode] = useState("");
   const [couponValid, setCouponValid] = useState<boolean | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
   const [couponData, setCouponData] = useState<Coupon | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -19,6 +35,7 @@ export const useCoupon = (selectedPlan: Plan | null) => {
     setCouponCode("");
     setCouponValid(null);
     setCouponData(null);
+    setCouponError(null);
   }, [selectedPlanId]);
 
   const validateCoupon = useCallback(
@@ -31,12 +48,14 @@ export const useCoupon = (selectedPlan: Plan | null) => {
       if (!coupon) {
         setCouponValid(null);
         setCouponData(null);
+        setCouponError(null);
         return;
       }
 
       setLoading(true);
       setCouponValid(null);
       setCouponData(null);
+      setCouponError(null);
 
       try {
         const res = await api.post("coupons-validate", {
@@ -46,6 +65,7 @@ export const useCoupon = (selectedPlan: Plan | null) => {
 
         if (res.data.valid) {
           setCouponValid(true);
+          setCouponError(null);
 
           const coupons = await api.get("coupons");
           const found =
@@ -56,7 +76,16 @@ export const useCoupon = (selectedPlan: Plan | null) => {
           setCouponValid(false);
           setCouponData(null);
         }
-      } catch {
+      } catch (error: unknown) {
+        if (error instanceof AxiosError) {
+          if (error.status === 422) {
+            setCouponError(
+              translateCouponError(
+                error.response?.data.message || "Invalid Coupon"
+              )
+            );
+          }
+        }
         setCouponValid(false);
         setCouponData(null);
       } finally {
@@ -87,6 +116,7 @@ export const useCoupon = (selectedPlan: Plan | null) => {
     couponCode,
     setCouponCode,
     couponValid,
+    couponError,
     couponData,
     loading,
     validateCoupon,

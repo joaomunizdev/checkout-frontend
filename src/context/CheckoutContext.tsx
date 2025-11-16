@@ -4,7 +4,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 
 type Transaction = {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
 } | null;
 
