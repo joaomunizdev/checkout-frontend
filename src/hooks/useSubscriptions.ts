@@ -1,8 +1,21 @@
 import api from "@/services/api";
-import { useState } from "react";
-import { CardFlag } from "./useCardFlags";
+import { useState, useEffect } from "react";
 import { Plan } from "./usePlans";
-import { isAxiosError } from "node_modules/axios/index";
+import { isAxiosError } from "axios";
+import { CardFlag } from "./useCardFlags";
+
+interface CardOnTransaction {
+  id: number;
+  card_number: number;
+  client_name: string;
+  expire_date: string;
+  last_4_digits: number;
+  cvc: number;
+  card_flag_id: number;
+  created_at: string;
+  updated_at: string;
+  cardFlag: CardFlag;
+}
 
 type SubscriptionPayload = {
   plan_id: number;
@@ -22,7 +35,8 @@ interface Transaction {
   status: boolean;
   created_at: string;
   updated_at: string;
-  card: CardFlag;
+  price_paid: number;
+  card: CardOnTransaction;
 }
 
 export interface SubscriptionResponse {
@@ -31,10 +45,9 @@ export interface SubscriptionResponse {
   coupon_id: number | null;
   email: string;
   active: boolean;
-  price_paid: number;
   created_at: string;
   updated_at: string;
-  transaction: Transaction;
+  transaction: Transaction[];
   plan: Plan;
   coupon: unknown | null;
 }
@@ -139,4 +152,51 @@ export function useSubscription() {
   };
 
   return { createSubscription, isSubmitting, error, setError };
+}
+
+export function useSubscriptionsList() {
+  const [subscriptions, setSubscriptions] = useState<SubscriptionResponse[]>(
+    []
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchSubscriptions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await api.get("subscriptions");
+
+        if (mounted) {
+          setSubscriptions(response.data || []);
+        }
+      } catch (e: unknown) {
+        if (mounted) {
+          let message = "Erro ao buscar assinaturas";
+          if (isAxiosError<ApiErrorResponse>(e) && e.response?.data?.message) {
+            message = e.response.data.message;
+          } else if (e instanceof Error) {
+            message = e.message;
+          }
+          setError(message);
+          setSubscriptions([]);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchSubscriptions();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return { subscriptions, loading, error };
 }
