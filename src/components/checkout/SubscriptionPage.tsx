@@ -83,7 +83,7 @@ export default function SubscriptionPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={sub.active ? "default" : "outline"}>
-                          {sub.active ? "Ativa" : "Expirada"}
+                          {sub.active ? "Ativa" : "Inativa"}
                         </Badge>
                       </TableCell>
                       <TableCell>
