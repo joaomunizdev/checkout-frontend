@@ -45,7 +45,6 @@ export default function SubscriptionPage() {
     setSelectedSub(subscription);
     setIsModalOpen(true);
   };
-  console.log(selectedSub);
 
   return (
     <div className="container mx-auto px-4 py-12">
