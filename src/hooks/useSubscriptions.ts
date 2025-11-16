@@ -28,7 +28,7 @@ type SubscriptionPayload = {
   card_flag_id: number;
 };
 
-interface Transaction {
+export interface Transaction {
   id: number;
   card_id: number;
   subscription_id: number;
