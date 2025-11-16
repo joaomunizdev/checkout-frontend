@@ -1,14 +1,19 @@
 "use client";
 import { Plan } from "@/hooks/usePlans";
-import { Transaction } from "@/hooks/useSubscriptions";
 import { createContext, useContext, useState, ReactNode } from "react";
+
+type Transaction = {
+  success: boolean;
+  data?: any;
+  error?: string;
+} | null;
 
 type CheckoutContextType = {
   currentPage: "plans" | "checkout" | "confirmation" | "subscriptions";
   setCurrentPage: (p: CheckoutContextType["currentPage"]) => void;
   selectedPlan: Plan | null;
   setSelectedPlan: (p: Plan | null) => void;
-  transaction: Transaction | null;
+  transaction: Transaction;
   setTransaction: (t: Transaction) => void;
 };
 
