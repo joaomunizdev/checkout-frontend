@@ -32,12 +32,18 @@ export default function PlansPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
+      <Button
+        variant="secondary"
+        onClick={() => setCurrentPage("subscriptions")}
+        className="mb-6"
+      >
+        Visualizar assinaturas
+      </Button>
       <div className="text-center mb-12 max-w-2xl mx-auto">
         <h1 className="text-4xl font-bold tracking-tight mb-2">
           Escolha seu Plano
         </h1>
       </div>
-
       <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
         {plans.map((plan) => (
           <Card key={plan.id} className="flex flex-col">
