@@ -9,12 +9,21 @@ export function PlansPage() {
   const handleSubscribe = (plan: Plan) => {
     setSelectedPlan(plan);
     setCurrentPage("checkout");
-    console.log("Mudando para checkout...");
   };
 
   return (
     <div>
-      <button onClick={() => handleSubscribe({ id: 1, name: "Teste" })}>
+      <button
+        onClick={() =>
+          handleSubscribe({
+            id: 1,
+            name: "Teste",
+            description: "Plano teste",
+            price: 0,
+            periodicity: 30,
+          })
+        }
+      >
         Assinar
       </button>
     </div>
