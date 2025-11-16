@@ -1,12 +1,9 @@
 "use client";
 import { Plan } from "@/hooks/usePlans";
+import { TransactionResult } from "@/hooks/useSubscriptions";
 import { createContext, useContext, useState, ReactNode } from "react";
 
-type Transaction = {
-  success: boolean;
-  data?: unknown;
-  error?: string;
-} | null;
+type Transaction = TransactionResult | null;
 
 type CheckoutContextType = {
   currentPage: "plans" | "checkout" | "confirmation" | "subscriptions";
@@ -31,7 +28,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const [currentPage, setCurrentPage] =
     useState<CheckoutContextType["currentPage"]>("plans");
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [transaction, setTransaction] = useState<Transaction>(null);
 
   return (
     <CheckoutContext.Provider

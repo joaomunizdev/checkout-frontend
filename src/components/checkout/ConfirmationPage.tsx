@@ -21,6 +21,7 @@ export default function ConfirmationPage() {
     setTransaction(null);
     setCurrentPage("plans");
   };
+
   if (!transaction) {
     return (
       <div className="relative container mx-auto px-4 py-12 text-center pt-32">
@@ -32,13 +33,46 @@ export default function ConfirmationPage() {
     );
   }
 
-  const isPaymentSuccessful =
-    transaction.success &&
-    transaction.data &&
-    transaction.data.transaction[0].status === true;
-  const { email, plan } = transaction.data;
-  const last4 = transaction.data.transaction[0].card.last_4_digits;
-  const pricePaid = transaction.data.transaction[0].price_paid;
+  if (!transaction.success) {
+    return (
+      <div className="relative container mx-auto px-4 py-12 pt-32">
+        <div className="max-w-2xl mx-auto">
+          <Card>
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <XCircle className="w-16 h-16 text-destructive" />
+              </div>
+              <CardTitle className="text-2xl">Erro na Requisição</CardTitle>
+              <CardDescription>
+                Não foi possível processar sua solicitação
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Alert variant="destructive">
+                <XCircle className="w-4 h-4" />
+                <AlertDescription>
+                  {transaction.error || "Ocorreu um erro inesperado"}
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={resetToPlans} className="w-full">
+                Tentar Novamente
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const { data } = transaction;
+  const { email, plan } = data;
+  const paymentTransaction = data.transaction[0];
+
+  const isPaymentSuccessful = paymentTransaction?.status === true;
+  const last4 = paymentTransaction?.card.last_4_digits;
+  const pricePaid = paymentTransaction?.price_paid;
 
   if (isPaymentSuccessful) {
     return (
@@ -79,7 +113,9 @@ export default function ConfirmationPage() {
                 </div>
                 <div className="flex justify-between mt-2">
                   <span className="text-muted-foreground">Valor Pago</span>
-                  <span className="font-medium">R$ {pricePaid.toFixed(2)}</span>
+                  <span className="font-medium">
+                    R$ {pricePaid ? pricePaid.toFixed(2) : "0.00"}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -133,11 +169,7 @@ export default function ConfirmationPage() {
 
             <Alert variant="destructive">
               <XCircle className="w-4 h-4" />
-              <AlertDescription>
-                {!transaction.success && transaction.error
-                  ? transaction.error
-                  : "Ocorreu um erro ao processar o pagamento"}
-              </AlertDescription>
+              <AlertDescription>O pagamento foi recusado.</AlertDescription>
             </Alert>
           </CardContent>
 
