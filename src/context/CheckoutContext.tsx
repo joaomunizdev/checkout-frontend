@@ -9,7 +9,7 @@ type Transaction = {
 } | null;
 
 type CheckoutContextType = {
-  currentPage: "plans" | "checkout" | "confirmation";
+  currentPage: "plans" | "checkout" | "confirmation" | "subscriptions";
   setCurrentPage: (p: CheckoutContextType["currentPage"]) => void;
   selectedPlan: Plan | null;
   setSelectedPlan: (p: Plan | null) => void;
