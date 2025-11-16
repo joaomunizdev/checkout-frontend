@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Plan, usePlans } from "@/hooks/usePlans";
 import { useCheckout } from "@/context/CheckoutContext";
+import { formatCurrency } from "@/lib/utils";
 
 export default function PlansPage() {
   const { plans, loading } = usePlans();
@@ -31,10 +32,7 @@ export default function PlansPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <Button
-        onClick={() => setCurrentPage("subscriptions")}
-        className="mb-6"
-      >
+      <Button onClick={() => setCurrentPage("subscriptions")} className="mb-6">
         Visualizar assinaturas
       </Button>
       <div className="text-center mb-12 max-w-2xl mx-auto">
@@ -55,7 +53,7 @@ export default function PlansPage() {
             <CardContent className="flex-1">
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold tracking-tight">
-                  R$ {plan.price.toFixed(2)}
+                  {formatCurrency(plan.price)}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   /{plan.periodicity}d

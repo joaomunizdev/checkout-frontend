@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
+import { formatCurrency } from "@/lib/utils";
 
 export default function ConfirmationPage() {
   const { transaction, setSelectedPlan, setTransaction, setCurrentPage } =
@@ -108,13 +109,13 @@ export default function ConfirmationPage() {
                 <div className="flex justify-between mt-2">
                   <span className="text-muted-foreground">Valor do Plano</span>
                   <span className="font-medium">
-                    R$ {plan.price.toFixed(2)}
+                    {formatCurrency(plan.price)}
                   </span>
                 </div>
                 <div className="flex justify-between mt-2">
                   <span className="text-muted-foreground">Valor Pago</span>
                   <span className="font-medium">
-                    R$ {pricePaid ? pricePaid.toFixed(2) : "0.00"}
+                    {formatCurrency(pricePaid)}
                   </span>
                 </div>
               </div>
@@ -163,7 +164,9 @@ export default function ConfirmationPage() {
               </div>
               <div className="flex justify-between mt-2">
                 <span className="text-muted-foreground">Valor do Plano</span>
-                <span className="font-medium">R$ {plan.price.toFixed(2)}</span>
+                <span className="font-medium">
+                  {formatCurrency(plan.price)}
+                </span>
               </div>
             </div>
 

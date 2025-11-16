@@ -23,6 +23,7 @@ import { useCheckout } from "@/context/CheckoutContext";
 import { useCardFlags } from "@/hooks/useCardFlags";
 import { useCoupon } from "@/hooks/useCoupon";
 import { useSubscription } from "@/hooks/useSubscriptions";
+import { formatCurrency } from "@/lib/utils";
 
 const schema = z.object({
   email: z.email("Email inválido"),
@@ -325,7 +326,7 @@ export default function CheckoutPage() {
               {isSubmitting && (
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
               )}
-              Finalizar Pagamento (R$ {total.toFixed(2)})
+              Finalizar Pagamento ({formatCurrency(total)})
             </Button>
           </form>
         </div>
@@ -349,7 +350,7 @@ export default function CheckoutPage() {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>R$ {subtotal.toFixed(2)}</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
 
                 {discount > 0 && (
@@ -357,13 +358,13 @@ export default function CheckoutPage() {
                     <span className="flex items-center gap-1">
                       <Tag className="w-4 h-4" /> Desconto
                     </span>
-                    <span>- R$ {discount.toFixed(2)}</span>
+                    <span>- {formatCurrency(discount)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between text-xl font-bold border-t pt-2">
                   <span>Total</span>
-                  <span>R$ {total.toFixed(2)}</span>
+                  <span>{formatCurrency(total)}</span>
                 </div>
               </div>
             </CardContent>
