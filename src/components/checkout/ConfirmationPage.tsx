@@ -12,11 +12,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
 
-const formatLast4 = (cardNumber: string | number | undefined) => {
-  if (!cardNumber) return "****";
-  return String(cardNumber).slice(-4);
-};
-
 export default function ConfirmationPage() {
   const { transaction, setSelectedPlan, setTransaction, setCurrentPage } =
     useCheckout();
@@ -38,9 +33,12 @@ export default function ConfirmationPage() {
   }
 
   const isPaymentSuccessful =
-    transaction.success && transaction.data && transaction.data.status === true;
-  const { email, plan, price_paid, transaction: txData } = transaction.data;
-  const last4 = formatLast4(txData?.card?.card_number);
+    transaction.success &&
+    transaction.data &&
+    transaction.data.transaction[0].status === true;
+  const { email, plan } = transaction.data;
+  const last4 = transaction.data.transaction[0].card.last_4_digits;
+  const pricePaid = transaction.data.transaction[0].price_paid;
 
   if (isPaymentSuccessful) {
     return (
@@ -81,9 +79,7 @@ export default function ConfirmationPage() {
                 </div>
                 <div className="flex justify-between mt-2">
                   <span className="text-muted-foreground">Valor Pago</span>
-                  <span className="font-medium">
-                    R$ {price_paid.toFixed(2)}
-                  </span>
+                  <span className="font-medium">R$ {pricePaid.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
