@@ -33,7 +33,6 @@ export default function PlansPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <Button
-        variant="secondary"
         onClick={() => setCurrentPage("subscriptions")}
         className="mb-6"
       >
