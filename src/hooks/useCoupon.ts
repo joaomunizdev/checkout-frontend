@@ -67,9 +67,7 @@ export const useCoupon = (selectedPlan: Plan | null) => {
           setCouponValid(true);
           setCouponError(null);
 
-          const coupons = await api.get("coupons");
-          const found =
-            coupons.data.find((c: Coupon) => c.name === coupon) || null;
+          const found: Coupon = (await api.get(`coupons/${coupon}`)) || null;
 
           setCouponData(found);
         } else {
