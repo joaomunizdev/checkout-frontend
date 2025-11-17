@@ -88,6 +88,8 @@ Siga estes passos para configurar e levantar o ambiente de desenvolvimento.
 
 ### 2. Construir e Subir os Contêineres
 
+### Caso esteja executando o DockerDesktop com o Windows/Mac container, troque para o Linux Container pois com Windows container é apresentado um erro.
+
 Com o Docker em execução, execute o seguinte comando na raiz do projeto:
 
 ```bash
